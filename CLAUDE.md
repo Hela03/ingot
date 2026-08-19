@@ -93,6 +93,9 @@ Removing one because it is noisy is a regression, not a cleanup.
 - If pnpm refuses an install because a version was published too recently, the
   default response is to wait, not to override. Version-specific exclusions
   only, never a blanket opt-out.
+- Before any destructive git command — `reset --hard`, a force-push, a branch
+  deletion — confirm the work is reachable from another branch or tag, and say
+  so explicitly before running it. A commit no name points at is gone.
 - The `gh` token deliberately carries the minimum scopes needed, nothing more.
   If a task requires a scope it does not have, ask the maintainer rather than
   assuming — and explain what that scope would permit, not just that it is
