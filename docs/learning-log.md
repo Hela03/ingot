@@ -60,6 +60,26 @@ recent, **wait**. Do not override. Version-specific exclusions only, never a
 blanket opt-out. Same reasoning as the strict TypeScript options — a deliberate
 guard, not friction to be tidied away.
 
+**GitHub refused the first push, because of the CI workflow file.** The `gh`
+token had scopes `gist`, `read:org` and `repo` — but not `workflow`. GitHub
+separates "can push code" from "can push files that GitHub will execute
+automatically", so the other 33 files were acceptable and `.github/workflows/ci.yml`
+was not.
+
+The reasoning is sound: a workflow file is code that runs on GitHub's machines
+with access to repository secrets. If any token that could push code could also
+add a workflow, a leaked token could exfiltrate secrets on the next commit.
+
+This belongs in the same category as branch protection: **a boundary that
+constrains the agent, not the maintainer.** The maintainer can grant the scope
+in a browser in about fifteen seconds. The agent cannot grant it to itself, and
+cannot proceed without asking. That asymmetry is the point — the rules that
+matter are the ones an agent is unable to route around, rather than the ones it
+has merely been told to respect.
+
+Policy, now in `CLAUDE.md`: the token carries the minimum scopes needed. A task
+that needs a new one asks the maintainer, and explains what the scope permits.
+
 ### Decisions worth remembering
 
 **Git identity was set locally, not globally.** Display name plus GitHub's

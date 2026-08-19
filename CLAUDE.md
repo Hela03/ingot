@@ -93,3 +93,7 @@ Removing one because it is noisy is a regression, not a cleanup.
 - If pnpm refuses an install because a version was published too recently, the
   default response is to wait, not to override. Version-specific exclusions
   only, never a blanket opt-out.
+- The `gh` token deliberately carries the minimum scopes needed, nothing more.
+  If a task requires a scope it does not have, ask the maintainer rather than
+  assuming — and explain what that scope would permit, not just that it is
+  needed.
