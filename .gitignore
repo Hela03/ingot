@@ -1,0 +1,59 @@
+# ---------------------------------------------------------------------------
+# Secrets and local environment
+# Never commit these. Git history is append-only: a secret committed once is
+# permanently in the history even if a later commit deletes it.
+# ---------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.netrc
+secrets.json
+
+# ---------------------------------------------------------------------------
+# Dependencies
+# Installed from package.json + pnpm-lock.yaml, so they are reproducible and
+# do not belong in version control. Note pnpm-lock.yaml IS committed.
+# ---------------------------------------------------------------------------
+node_modules/
+.pnpm-store/
+
+# ---------------------------------------------------------------------------
+# Build output
+# Generated from source. Committing it creates noisy diffs and lets the built
+# files drift out of sync with the source they came from.
+# ---------------------------------------------------------------------------
+dist/
+build/
+storybook-static/
+.astro/
+*.tsbuildinfo
+
+# ---------------------------------------------------------------------------
+# Test and tooling caches
+# ---------------------------------------------------------------------------
+coverage/
+.vitest/
+.eslintcache
+.cache/
+
+# ---------------------------------------------------------------------------
+# Logs
+# ---------------------------------------------------------------------------
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ---------------------------------------------------------------------------
+# Editor and operating system noise
+# Personal to one machine; not part of the project.
+# ---------------------------------------------------------------------------
+.DS_Store
+.idea/
+*.swp
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json

@@ -1,0 +1,17 @@
+# Declares which folders in this repo are workspace packages.
+# pnpm reads this to link them to each other locally, so @ingot/react can
+# import @ingot/tokens without either being published to npm first.
+packages:
+  - packages/*
+  - apps/*
+minimumReleaseAgeExclude:
+  - '@vitest/expect@4.1.11'
+  - '@vitest/mocker@4.1.11'
+  - '@vitest/pretty-format@4.1.11'
+  - '@vitest/runner@4.1.11'
+  - '@vitest/snapshot@4.1.11'
+  - '@vitest/spy@4.1.11'
+  - '@vitest/utils@4.1.11'
+  - vitest@4.1.11
+  - '@changesets/cli@3.0.1'
+  - '@changesets/write@1.0.1'

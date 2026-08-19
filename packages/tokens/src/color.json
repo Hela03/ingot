@@ -1,0 +1,11 @@
+{
+  "color": {
+    "blue": {
+      "500": {
+        "$type": "color",
+        "$value": "#2563eb",
+        "$description": "Primitive. A raw palette value with no assigned meaning. Scaffolding sample only — it exists to prove the build pipeline runs end to end, not to propose a palette."
+      }
+    }
+  }
+}

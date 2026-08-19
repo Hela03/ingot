@@ -1,0 +1,36 @@
+{
+  // Shared TypeScript rules. Every package extends this file so the rules are
+  // defined once and cannot drift apart between packages.
+  //
+  // Do not raise the TypeScript major version without checking that
+  // typescript-eslint supports it. See docs/decisions/0004-typescript-version.md
+  "compilerOptions": {
+    // --- Output target -----------------------------------------------------
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+
+    // --- Strictness --------------------------------------------------------
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+
+    // --- Interop and correctness ------------------------------------------
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "resolveJsonModule": true,
+
+    // Skip typechecking inside third-party .d.ts files. Their errors are not
+    // ours to fix and checking them is slow.
+    "skipLibCheck": true,
+
+    // Typecheck only; building is each package's own concern.
+    "noEmit": true
+  }
+}

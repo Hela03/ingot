@@ -1,0 +1,16 @@
+{
+  "name": "@ingot/react",
+  "version": "0.0.0",
+  "description": "React component library for Ingot. Intentionally empty — no components yet.",
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  }
+}

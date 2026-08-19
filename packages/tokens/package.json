@@ -1,0 +1,27 @@
+{
+  "name": "@ingot/tokens",
+  "version": "0.0.0",
+  "description": "Design tokens for Ingot, authored in W3C DTCG format and built with Style Dictionary.",
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/js/tokens.d.ts",
+      "import": "./dist/js/tokens.js"
+    },
+    "./css": "./dist/css/variables.css"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "style-dictionary build --config ./config.json",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "style-dictionary": "^5.5.1"
+  }
+}

@@ -1,0 +1,12 @@
+# Generated output — rewritten on every build, so formatting it is pointless.
+dist/
+build/
+storybook-static/
+.astro/
+coverage/
+
+# Dependencies
+node_modules/
+
+# Lockfile — owned by pnpm, must not be reformatted.
+pnpm-lock.yaml

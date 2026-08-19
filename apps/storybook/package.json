@@ -1,0 +1,8 @@
+{
+  "name": "@ingot/storybook",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Component workshop: states, variants, accessibility and visual regression.",
+  "license": "MIT",
+  "type": "module"
+}

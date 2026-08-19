@@ -1,0 +1,7 @@
+{
+  // Covers tooling config files at the repo root so the typechecker and
+  // ESLint's type-aware rules can see them. Package source is covered by each
+  // package's own tsconfig.json.
+  "extends": "./tsconfig.base.json",
+  "include": ["vitest.config.ts"]
+}

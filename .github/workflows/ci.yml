@@ -1,0 +1,62 @@
+name: CI
+
+# When this runs.
+#   pull_request — every time someone proposes a change to main, and again on
+#                  every push to that proposal. This is the gate.
+#   push to main — a safety net, so main is verified even if something lands
+#                  without review.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# If new commits arrive while an older run is still going, cancel the old one.
+# Only the latest state of a branch is worth spending minutes on.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Lint, typecheck and test
+    runs-on: ubuntu-latest
+
+    steps:
+      # Copy the repository onto the fresh machine. Nothing exists until this.
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      # Install pnpm. No version is given here on purpose: this action reads
+      # the "packageManager" field in package.json, so CI uses the exact same
+      # pnpm as a local machine, verified by the checksum recorded there.
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Install Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22.14.0
+          cache: pnpm
+
+      # --frozen-lockfile means: install exactly what pnpm-lock.yaml says, and
+      # fail if package.json and the lockfile disagree. Without it, CI could
+      # quietly install different versions from the ones tested locally, and a
+      # forgotten lockfile update would pass unnoticed.
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Each step below fails the job if its command exits with a non-zero
+      # code. They are listed separately so a failure names itself in the UI
+      # rather than hiding inside one long "build" step.
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+      - name: Check formatting
+        run: pnpm format:check
