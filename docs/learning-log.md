@@ -80,6 +80,33 @@ has merely been told to respect.
 Policy, now in `CLAUDE.md`: the token carries the minimum scopes needed. A task
 that needs a new one asks the maintainer, and explains what the scope permits.
 
+**The agent's environment and the maintainer's shell were not the same
+environment.** `gh` is installed at `~/.local/bin/gh` — not in either Homebrew
+location, and Homebrew is not installed on this machine at all. The agent's
+shell had `~/.local/bin` on its `PATH`; the maintainer's Terminal runs bash and
+did not, because the `PATH` line lived in `.zshrc`.
+
+So "it works fine for the agent" and "it does not exist for me" were both true
+at the same time, about the same binary, on the same machine. Fixed by adding
+the path to `.bash_profile`.
+
+Worth generalising: when an agent reports a command working, that is evidence
+about the agent's environment only. Diagnose from the maintainer's shell before
+concluding anything about the machine.
+
+A related consequence: setup instructions in `CONTRIBUTING.md` must describe how
+a **new contributor** installs a tool (`brew install gh`), never the path it
+happens to occupy on the maintainer's machine.
+
+**A stale keychain credential is the next thing to suspect if a push fails.**
+This did not happen here — the push succeeded as soon as the `workflow` scope
+was granted — but the trap is real and worth writing down. macOS git is
+configured with `credential.helper = osxkeychain`, so `git push` can keep using
+an older credential from the keychain even after `gh` has been given a fresh
+token. The symptom is a push failing with the identical error after a scope
+refresh that visibly worked. The fix is `gh auth setup-git`, which points git at
+gh's token.
+
 ### Decisions worth remembering
 
 **Git identity was set locally, not globally.** Display name plus GitHub's

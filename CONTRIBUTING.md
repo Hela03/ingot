@@ -13,6 +13,18 @@ pnpm install
 Node 22.14.0 or later. The pnpm version is pinned with a checksum in
 `package.json`, so everyone — including CI — runs an identical one.
 
+You will also need the GitHub CLI to open pull requests:
+
+```bash
+brew install gh          # or see https://github.com/cli/cli#installation
+gh auth login
+```
+
+Pushing a change to `.github/workflows/` additionally requires the `workflow`
+scope on your token — `gh auth refresh -h github.com -s workflow`. GitHub keeps
+that separate from ordinary push access because a workflow file is code it will
+execute automatically.
+
 ## The workflow
 
 **Never commit to `main`.** It is protected, and direct pushes are rejected.
