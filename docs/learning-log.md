@@ -221,6 +221,30 @@ must land before the first component.
 
 ### Still open after the scaffolding session
 
+---
+
+## 2026-08-22 — ADR-0006, found by planning something else
+
+The styling mechanism was undecided, and nobody noticed until the lint rule in
+#4 was planned in detail. The rule cannot be designed without knowing where
+appearance values live: CSS files are stylelint's territory, TypeScript is
+ESLint's, Tailwind class strings are neither's. Issue #4 had been written as
+"an ESLint rule", which quietly presumed an answer that had never been given.
+
+Decided as [ADR-0006](decisions/0006-styling-mechanism.md): CSS Modules with all
+appearance values as CSS custom properties. The deciding argument is ADR-0001's
+— the theming API is the consumer's only escape hatch, so it cannot depend on
+our build. Overriding a custom property works in the browser, with no toolchain
+of ours in the consumer's pipeline.
+
+Worth generalising: **planning an implementation in detail is a good way to find
+a missing decision.** The gap did not show up while writing ADR-0003 or ADR-0005,
+which are both about tokens, because tokens are upstream of styling and nothing
+forced the question. It showed up the moment something had to enforce a rule
+against real files.
+
+### Still open
+
 Tracked as issues rather than here, so they have a done state:
 
 - **#4 — lint rule: no literal appearance values, no primitive references in
