@@ -13,5 +13,9 @@ const spacingScale: Record<string, string> = {
 
 /** Resolve a spacing token name to the CSS custom property holding its value. */
 export function resolveSpacing(name: string): string {
-  return spacingScale[name].trim();
+  const value = spacingScale[name];
+  if (value === undefined) {
+    throw new Error(`Unknown spacing token: ${name}`);
+  }
+  return value.trim();
 }
