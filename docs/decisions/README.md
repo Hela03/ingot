@@ -25,3 +25,4 @@ itself part of the record.
 | [0003](0003-token-architecture.md)                   | Token architecture and naming                                    | Accepted |
 | [0004](0004-typescript-version.md)                   | Pin TypeScript to 6.x, and keep three non-default strict options | Accepted |
 | [0005](0005-palette-generation-and-accessibility.md) | Palette generation and accessibility policy                      | Accepted |
+| [0006](0006-styling-mechanism.md)                    | Styling mechanism                                                | Accepted |
