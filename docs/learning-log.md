@@ -107,6 +107,61 @@ token. The symptom is a push failing with the identical error after a scope
 refresh that visibly worked. The fix is `gh auth setup-git`, which points git at
 gh's token.
 
+**We predicted a CI failure before causing it, then scored the prediction.**
+This was the most useful exercise of the session and is worth repeating.
+
+A branch was pushed containing a deliberate error of the kind this project is
+most exposed to — a token lookup that assumes the token is there:
+
+```ts
+const spacingScale: Record<string, string> = {/* ... */};
+export function resolveSpacing(name: string): string {
+  return spacingScale[name].trim(); // spacingScale[name] may be undefined
+}
+```
+
+The prediction, written before pushing: lint passes, typecheck fails, Test and
+Check formatting never run, the required check fails, the merge is blocked.
+
+The result matched on every count:
+
+```
+success   Lint
+failure   Typecheck      error TS2532: Object is possibly 'undefined.'
+skipped   Test
+skipped   Check formatting
+```
+
+**Two things the exercise taught that a clean demonstration would not have.**
+
+_The error code was hedged, not predicted._ The call was split 60/40 between
+`TS2532` and `TS18048` rather than committed to. The hedge landed on the right
+side, which is not the same as being right. The underlying rule, now known:
+TypeScript picks the message by **expression shape**. Assign the lookup to a
+named variable and the error is `TS18048`, naming that variable. Call a method
+directly on the index expression and there is no name to report, so the message
+is the anonymous `TS2532` — "Object is possibly undefined". Same rule, different
+message depending on whether the value has a name.
+
+_The exit code was 2, not 1, and that was not predicted at all._ `tsc` uses exit
+status 2 for compilation errors. It changes nothing — CI treats any non-zero as
+failure — but the assumption "failure means exit 1" was wrong and would have
+been stated confidently if asked. Worth holding loosely: **CI does not care
+which non-zero number it gets, and neither should we.**
+
+**Skipped steps hide later failures.** Because CI steps run in sequence and a
+failure aborts the job, Test and Check formatting never ran on the broken push.
+They were only shown to be fine after the fix. Practical consequence: a red run
+tells you about the _first_ problem, not all of them, and fixes can arrive in
+waves.
+
+**Two further details from the same demonstration.** GitHub reported the PR as
+`mergeable: MERGEABLE` and `merge state: BLOCKED` at the same time. These answer
+different questions: `MERGEABLE` is git's — are there conflicts? — and `BLOCKED`
+is policy's — are you permitted? The code would have merged cleanly. The rules
+did not allow it. And because `enforce_admins` is enabled, no admin override
+link appeared, which otherwise would have.
+
 ### Decisions worth remembering
 
 **Git identity was set locally, not globally.** Display name plus GitHub's
