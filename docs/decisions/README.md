@@ -17,10 +17,11 @@ itself part of the record.
 
 ## Index
 
-| ADR                                | Title                                                            | Status                                                                                  |
-| ---------------------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| [0000](0000-template.md)           | Template                                                         | —                                                                                       |
-| [0001](0001-distribution-model.md) | Distribution model                                               | Accepted                                                                                |
-| [0002](0002-naming-and-prefix.md)  | Package naming and CSS custom property prefix                    | Accepted                                                                                |
-| 0003                               | Token architecture: primitive / semantic / component             | **Reserved, not yet written — this gap is deliberate, do not decide it by implication** |
-| [0004](0004-typescript-version.md) | Pin TypeScript to 6.x, and keep three non-default strict options | Accepted                                                                                |
+| ADR                                                  | Title                                                            | Status   |
+| ---------------------------------------------------- | ---------------------------------------------------------------- | -------- |
+| [0000](0000-template.md)                             | Template                                                         | —        |
+| [0001](0001-distribution-model.md)                   | Distribution model                                               | Accepted |
+| [0002](0002-naming-and-prefix.md)                    | Package naming and CSS custom property prefix                    | Accepted |
+| [0003](0003-token-architecture.md)                   | Token architecture and naming                                    | Accepted |
+| [0004](0004-typescript-version.md)                   | Pin TypeScript to 6.x, and keep three non-default strict options | Accepted |
+| [0005](0005-palette-generation-and-accessibility.md) | Palette generation and accessibility policy                      | Accepted |

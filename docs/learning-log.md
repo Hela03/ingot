@@ -189,20 +189,51 @@ blue-500**. It exists only to prove the build pipeline runs end to end. It is a
 placeholder and must not survive into the real palette by accident. Flagged in
 ADR-0002 and to be resolved in ADR-0003 (token architecture).
 
-### Still open after this session
+---
 
-- **A lint rule for hardcoded values.** ADR-0001 turns "make it themeable" into
-  a testable rule: consumer flexibility is exactly equal to token coverage, so a
-  hardcoded colour, spacing or size inside a component is a defect, not a
-  detail, and should be caught by lint rather than by review. No such rule
-  exists yet — there are no components to police. It needs writing before the
-  first component lands, otherwise the first violation sets the precedent.
-- ADR-0003 (token architecture: primitive / semantic / component tiers) — not
-  yet written. The sample token is deliberately a primitive only, so this
-  decision is not made implicitly.
-- Whether `@ingot/tokens` and `@ingot/react` version independently or together.
-  Currently independent (the Changesets default). Affects whether a token-only
-  change forces a React release.
-- Whether Ingot goes to `1.0.0` early or stays on `0.x`. Below 1.0, semver
-  signals "this may change under you", and Changesets treats major bumps
-  differently. Worth deciding before the first publish, not at it.
+## 2026-08-22 — ADR-0003 and ADR-0005 written
+
+The two token decisions that scaffolding deliberately refused to make are now
+recorded: [ADR-0003](decisions/0003-token-architecture.md) (three tiers,
+property-first semantic naming, no appearance words, composite typography,
+component tier defined but empty) and
+[ADR-0005](decisions/0005-palette-generation-and-accessibility.md) (primitives
+generated from seeds in OKLCH, accessibility as the default state with explicit
+recorded overrides rather than a global switch).
+
+Both were transcription rather than design — the decisions were made away from
+the keyboard and written up afterwards. That is worth noting as a pattern: the
+scaffolding session's job was to make the absence of these decisions **visible
+and enforced** (the "Stop — ADR-0003 is not written" block in `CLAUDE.md`, the
+warning in the ADR index, a sample token that was deliberately a primitive only)
+so they could be made deliberately later instead of accumulating by accident.
+Those warnings have now been removed, because their job is done.
+
+Two numbers are still unset and are flagged at the bottom of each ADR: the
+x-height ratio the line-heights are tuned to, and the minimum hue separation
+used both as the collision threshold and as the harmonisation clamp. Ingot's own
+brand seed is also still to be chosen.
+
+The remaining open items moved from this log to GitHub issues (#4–#7), on the
+reasoning that a document has no done state and an issue closes. #4 — the lint
+rule forbidding literal appearance values and direct primitive references —
+must land before the first component.
+
+### Still open after the scaffolding session
+
+Tracked as issues rather than here, so they have a done state:
+
+- **#4 — lint rule: no literal appearance values, no primitive references in
+  components.** Blocks the first component.
+- **#5 — version the packages independently or together.** Currently
+  independent, which is the Changesets default rather than a choice.
+- **#6 — publish as `0.x` or go to `1.0.0`.**
+- **#7 — use `@changesets/changelog-github`** for PR-linked changelogs.
+
+Resolved since: ADR-0003 and ADR-0005 are written. The Tailwind placeholder
+(`#2563eb`) is superseded in principle by ADR-0005 — primitives are generated
+from a seed — but the sample token is still in the repository and still a
+placeholder until the generator exists and a brand seed is chosen.
+
+Not yet built at all: components, Storybook, the docs site, React as a
+dependency, the palette generator, any release workflow.
