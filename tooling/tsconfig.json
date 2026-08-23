@@ -1,0 +1,13 @@
+{
+  // In-repo tooling is plain JavaScript with JSDoc types, so that stylelint and
+  // ESLint can load it directly without a build step. `checkJs` means it is
+  // still typechecked — the JSDoc is load-bearing, not decoration.
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    // pnpm does not hoist, so TypeScript does not discover @types automatically.
+    "types": ["node"]
+  },
+  "include": ["**/*.js", "**/*.ts"]
+}

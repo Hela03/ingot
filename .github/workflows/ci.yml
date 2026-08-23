@@ -49,6 +49,13 @@ jobs:
       # Each step below fails the job if its command exits with a non-zero
       # code. They are listed separately so a failure names itself in the UI
       # rather than hiding inside one long "build" step.
+      # Tokens are built BEFORE linting, not as a convenience but because lint
+      # depends on the build: the tier and existence rules read the generated
+      # token manifest (ADR-0006, #13). A token build failure therefore surfaces
+      # here, as its own named step, rather than as a confusing lint error.
+      - name: Build tokens
+        run: pnpm --filter @ingot/tokens build
+
       # Run as separate steps rather than one `pnpm lint`, so a failure names
       # itself in the UI as "Lint CSS" rather than hiding inside a generic
       # lint step. The required status check is the JOB name, so adding steps
