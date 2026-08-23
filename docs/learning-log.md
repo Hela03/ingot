@@ -298,6 +298,77 @@ commenting on, unless you have checked that the field is genuinely inert.
 The token now says "property, then role" in words, with a note recording why it
 cannot say it literally.
 
+---
+
+## 2026-08-23 — A heuristic confirmed, and a refinement to how we predict
+
+### "Prose in a data file is still in the data file" is now confirmed, not anecdotal
+
+Recorded earlier the same day from Style Dictionary: a `$description` explaining
+the naming grammar contained `color.{property}.{role}`, and the braces were
+parsed as a token reference.
+
+Hours later, in a different tool, the same failure. The ESLint rule's own error
+message contained the example `style={{ "--ig-x": value }}`. **ESLint parses
+`{{ … }}` as a message placeholder**, so it read `"--ig-x": value` as a variable
+name to substitute — and the rule's test failed on its own error text.
+
+Two independent tools, hours apart, same failure. That upgrades it from an
+anecdote to a working rule:
+
+> **In a file a tool parses, no field is guaranteed inert.** A comment cannot
+> safely mention the syntax of the thing it is commenting on.
+
+Worth noting _why_ the second instance counts for more. **A generalisation
+confirmed on a case that did not produce it is worth more than one confirmed on
+the case that did.** The Style Dictionary instance suggested the rule; the ESLint
+instance tested it, in a tool with a different syntax, a different parser and a
+different purpose. It held.
+
+### Where this will bite next
+
+This architecture is unusually exposed, because it deliberately keeps
+documentation next to machine-read structure. Named in advance so the next
+instance is recognised rather than rediscovered:
+
+- **ADRs read as ground truth.** ADR prose is currently for humans. The moment
+  anything parses it — a docs generator, an index, an agent instructed to treat
+  decisions as authoritative — its examples become data. ADR-0003 contains
+  `color.{property}.{role}` in exactly the form that already broke once.
+- **`llms.txt`.** The docs site is planned to emit one for agents. That is
+  documentation converted into something a machine reads as instruction, which
+  is this failure mode by construction.
+- **The eventual component manifest.** If components get a manifest like the
+  token one, prop descriptions will sit beside machine-read structure.
+- **Changeset files.** Markdown prose with a parsed YAML-ish header.
+
+### Refining the prediction discipline: trace the blast radius
+
+The previous entry concluded that risk concentrates in _unexamined mechanisms_,
+because they generate no uncertainty to report. The demonstration of the lint
+rules refines that, because the one miss was not an unexamined mechanism.
+
+Prediction: `pnpm lint:js` would report 2 errors. It reported 3. The third was
+`@typescript-eslint/no-unsafe-return`, because React is not installed so JSX has
+no types.
+
+**That limitation was known and had already been predicted — for a different
+command.** The prediction said typecheck would fail for exactly this reason. What
+was never asked is what _else_ React's absence touches.
+
+> **Knowing something is broken is not the same as knowing where it surfaces.**
+> A known limitation still needs its blast radius traced: which commands, which
+> tools, which files does it reach?
+
+So the prediction checklist now has three questions, not two:
+
+1. What am I unsure about?
+2. What have I not examined at all? (No uncertainty is reported for these,
+   which is exactly why they are dangerous.)
+3. **What do I already know is broken, and everywhere it might surface?**
+
+The third is the cheapest of the three, and it was the one skipped.
+
 ### Still open after the scaffolding session
 
 ---
