@@ -7,6 +7,8 @@
 
 import js from '@eslint/js';
 import globals from 'globals';
+
+import ingot from './tooling/eslint-ingot/index.js';
 import tseslint from 'typescript-eslint';
 import prettier from 'eslint-config-prettier';
 
@@ -51,6 +53,16 @@ export default tseslint.config(
   {
     files: ['**/*.{js,mjs,cjs}'],
     extends: [tseslint.configs.disableTypeChecked],
+  },
+
+  // The only guard on the TypeScript/CSS boundary. stylelint cannot see into
+  // .tsx at all, so if this is removed nothing else notices.
+  {
+    files: ['packages/react/**/*.{tsx,jsx}'],
+    plugins: { ingot },
+    rules: {
+      'ingot/inline-style-custom-properties-only': 'error',
+    },
   },
 
   // MUST be last: disables all formatting-related ESLint rules.

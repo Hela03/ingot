@@ -17,7 +17,7 @@
 /** @type {import('stylelint').Config} */
 export default {
   extends: ['stylelint-config-standard'],
-  plugins: ['stylelint-declaration-strict-value'],
+  plugins: ['stylelint-declaration-strict-value', './tooling/stylelint-ingot/index.js'],
 
   rules: {
     'scale-unlimited/declaration-strict-value': [
@@ -140,8 +140,12 @@ export default {
     // THIS IS A PATCH, NOT A FIX. Configuration can only pattern-match strings.
     // A literal that is a *named* colour inside a function —
     // `color-mix(in srgb, red, blue)` — is still invisible here, because
-    // catching it needs argument-level inspection. That is the custom rule in
-    // PR 3 of #4. Do not assume this rule closes the class.
+    // catching it needs argument-level inspection.
+    //
+    // An earlier version of this comment said the custom rules would close it.
+    // They do not: those rules cover token TIER and token EXISTENCE, which is a
+    // different concern. This gap is still open and still tracked on #4. Do not
+    // assume this rule closes the class.
     'declaration-property-value-disallowed-list': [
       {
         // --- Colour properties -------------------------------------------
@@ -203,4 +207,17 @@ export default {
     // pattern in stylelint-config-standard would reject the prefix.
     'custom-property-pattern': '^ig-[a-z0-9]+(-[a-z0-9]+)*$',
   },
+
+  overrides: [
+    {
+      // The tier and existence rules apply to COMPONENT css only. They read the
+      // generated token manifest, so lint depends on the token build — CI runs
+      // `Build tokens` before linting for this reason.
+      files: ['packages/react/**/*.css'],
+      rules: {
+        'ingot/no-primitive-tokens': true,
+        'ingot/token-exists': true,
+      },
+    },
+  ],
 };
