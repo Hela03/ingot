@@ -179,6 +179,107 @@ discovering after the fifth modal. That is a considered trade, not an oversight,
 and it is only safe because the answer is obvious. Do not generalise it to
 open-ended properties like `width`.
 
+## Write guards against the well-formed violation
+
+When you write a rule, ask: **what does the well-formed version of this
+violation look like?**
+
+That is the one that reaches production. An ugly violation — a raw `#2563eb`
+dropped into a component — gets caught by anyone reading the diff, and often by
+the author before they commit. The dangerous case is the one that reads as
+someone doing the right thing: correct-looking, plausible, and wrong.
+
+Three have turned up so far, and all three read as good practice:
+
+- **A primitive reference.** `var(--ig-color-brand-9)` looks like proper token
+  usage. It passes review, typechecks, and renders correctly — and is silently
+  unthemeable, because a consumer's theme operates on the semantic layer.
+- **A composed text style, set atomically.** Setting `font-size` from a token
+  looks correct, but ADR-0003 makes typography composite: size, line-height,
+  weight and tracking travel together, and setting one alone permits exactly the
+  combinations the composite token exists to prevent.
+- **A `var()` fallback.** `var(--ig-color-bg-brand, #2563eb)` looks defensive
+  and careful. It is a hardcoded colour, and it is worse than a bare one — see
+  below.
+
+A rule that only catches the ugly form gives false confidence: it reports
+success on the cases that were never going to ship, and stays quiet on the ones
+that will.
+
+### The `var()` fallback defeats two guards at once
+
+Worth stating separately, because it is the sharpest example.
+
+```css
+color: var(--ig-color-bg-brand, #2563eb);
+```
+
+1. **It hides a literal**, which the no-hardcoded-values rule exists to catch.
+2. **The fallback fires precisely when the token is missing** — which is the
+   exact condition the token-existence check exists to detect. The fallback
+   makes the page look fine, so the missing token produces no visual symptom and
+   no error. The guard is not merely bypassed; it is actively masked.
+
+A rule handling this incidentally is not enough. It has to be handled
+deliberately, and tested for.
+
+## Guards fail closed, never open
+
+A rule that cannot establish ground truth **errors**. It never skips, never
+warns-and-continues, never assumes the missing thing was probably fine.
+
+The reason is not purity. A rule that disables itself still shows a green tick,
+and **the tick is what gets trusted** — nobody reads the log of a passing build.
+A guard that quietly stops guarding is worse than no guard, because it
+manufactures confidence.
+
+This project has met the same failure three times in different costumes:
+
+- **The `.d.ts` that promised an export that did not exist.** TypeScript
+  accepted the import and handed back `undefined` at runtime, which renders as a
+  missing colour rather than an error.
+- **The `var()` fallback that masks a missing token.**
+  `var(--ig-color-bg-brand, #2563eb)` renders correctly precisely when the token
+  is absent, so the failure the existence check exists to catch produces no
+  symptom.
+- **A token manifest that is missing, stale or malformed.** The rules that read
+  it refuse to run rather than pass silently.
+
+**The recurring enemy of this project is silence that reads as success.** When
+you are unsure whether a guard should error or warn, that is the tiebreaker.
+
+## Generated artifacts must be reproducible
+
+Identical inputs must produce identical bytes. No timestamps, no run-specific
+values, no unordered iteration written out in whatever order it came.
+
+"Rebuild and compare" is one of the cheapest diagnostics available — it answers
+"is this output actually derived from this input?" — and it only works if
+regeneration is deterministic. A single timestamp in a generated file destroys
+it, and also adds diff noise that carries no information.
+
+## When a check can fail in two directions, ask which one is silent
+
+A check that can be wrong in more than one way is rarely equally wrong in both,
+and the visible direction will train you to distrust it while the dangerous one
+runs unchecked.
+
+The token manifest is the worked example. If it goes stale:
+
+- A **renamed** token leaves the old name in the manifest, so a reference to a
+  token that no longer exists **passes**. Silent, and it renders as nothing at
+  runtime.
+- A **newly added** token is absent from the manifest, so a valid reference
+  **fails**. Visible, and merely annoying.
+
+Only the second one ever gets noticed — and noticing only that one teaches you
+the tool is flaky, while the direction that actually matters goes unobserved.
+This is why manifest staleness is an error in its own right rather than
+something the rules discover case by case.
+
+Ask this of any new check: what does it look like when it is wrong in the
+direction nobody complains about?
+
 ## Error messages are tested for content
 
 Any error message a person meets when they are **blocked** must be tested for
