@@ -39,8 +39,13 @@ git push -u origin short-descriptive-branch-name
 gh pr create --fill
 ```
 
-Those four checks are exactly what CI runs. Running them locally first saves a
-round trip — CI is the backstop, not the first line of defence.
+These are exactly what CI runs. Running them locally first saves a round trip —
+CI is the backstop, not the first line of defence.
+
+`pnpm lint` runs two tools: ESLint over JS/TS, and **stylelint** over CSS. Since
+ADR-0006 puts every appearance value in CSS, stylelint is what enforces the
+no-hardcoded-values rule. Run them individually as `pnpm lint:js` and
+`pnpm lint:css` when you want to know which one is unhappy.
 
 ## Recording your change for release
 
@@ -80,7 +85,7 @@ optional prop required. Narrowing the values a prop accepts. Raising the React
 version we require.
 
 **2. The token API.** Every shipped token name is public API. Someone will write
-`background: var(--ig-color-blue-500)` in their own stylesheet, and renaming or
+`background: var(--ig-color-bg-brand)` in their own stylesheet, and renaming or
 removing that token breaks them as surely as deleting a function would. Nothing
 in our test suite will notice.
 
@@ -112,10 +117,15 @@ it must be loud, even when the code is compatible.
 
 ## Tokens
 
-Everything visual resolves back to a token. A hardcoded colour, spacing or size
-inside a component is a defect, not a detail — it is a value a consumer cannot
-theme, and consumer flexibility is exactly equal to token coverage. See
-[ADR-0001](docs/decisions/0001-distribution-model.md).
+Everything visual resolves back to a token. A hardcoded appearance value inside a
+component is a defect, not a detail — it is a value a consumer cannot theme, and
+consumer flexibility is exactly equal to token coverage. See
+[ADR-0001](docs/decisions/0001-distribution-model.md) and
+[ADR-0003](docs/decisions/0003-token-architecture.md).
+
+`stylelint.config.js` enforces this, and the properties it covers are listed
+there with the reasoning. A colour in functional notation — `rgb(37 99 235)` —
+is exactly as hardcoded as a hex, and is caught too.
 
 Tokens are authored in [W3C DTCG](https://tr.designtokens.org/) JSON under
 `packages/tokens/src/` and compiled by Style Dictionary. Never edit anything in
@@ -135,6 +145,43 @@ If you need to make a new one, copy `docs/decisions/0000-template.md`, take the
 next free number, and open it as part of your pull request so the decision is
 reviewed alongside the code. Do not reverse an existing ADR without writing one
 that supersedes it.
+
+## Enforceability
+
+A general rule, not specific to any one tool:
+
+> **A constraint is enforceable exactly when a legal path through it exists.**
+
+A guard that blocks someone with no way to comply does not produce compliance.
+It produces disabled guards — and then the rule is gone for everyone, including
+the cases it was written for. Before adding a rule, check that someone hitting
+it has something correct to do instead.
+
+This is why `stylelint.config.js` lists the properties it does and not others.
+A property is enforced when a token scale exists that could satisfy it. Where
+the list has gaps, the token system has gaps.
+
+**One deliberate exception.** A small number of properties are enforced _without_
+a scale, where the set of sensible values is small and enumerable — border width
+and z-index. There the violation is a useful prompt: the right response is to
+create the scale, which is a decision worth forcing early rather than
+discovering after the fifth modal. That is a considered trade, not an oversight,
+and it is only safe because the answer is obvious. Do not generalise it to
+open-ended properties like `width`.
+
+## Error messages are tested for content
+
+Any error message a person meets when they are **blocked** must be tested for
+what it says, not merely that it throws.
+
+The message someone reads at their most confused moment is part of the
+interface. A test asserting only that an error occurred will happily pass while
+the message says `Cannot read properties of undefined`.
+
+Example: when the token manifest is missing, the lint rule must say so and name
+the command that fixes it. A test asserts that string. If the message changes,
+the test fails and someone decides whether the new wording is better — rather
+than it degrading unnoticed.
 
 ## Things that look like friction and are not
 
