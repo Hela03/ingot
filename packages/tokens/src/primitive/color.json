@@ -1,10 +1,10 @@
 {
   "color": {
-    "blue": {
-      "500": {
+    "brand": {
+      "9": {
         "$type": "color",
         "$value": "#2563eb",
-        "$description": "Primitive. A raw palette value with no assigned meaning. Scaffolding sample only — it exists to prove the build pipeline runs end to end, not to propose a palette."
+        "$description": "PLACEHOLDER. Step 9 of the brand scale — solid fills, per the Radix band model in ADR-0003. The value is Tailwind's default blue-500 and is a stand-in only: ADR-0005 makes primitives GENERATED from a brand seed, not hand-authored. Replace when the generator and a chosen seed exist."
       }
     }
   }

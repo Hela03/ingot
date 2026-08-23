@@ -1,0 +1,11 @@
+{
+  "color": {
+    "bg": {
+      "brand": {
+        "$type": "color",
+        "$value": "{color.brand.9}",
+        "$description": "Brand background. Property-first naming per ADR-0003 — property, then role. Components reference this, never the primitive it resolves to. NOTE: curly braces are parsed as token references even inside a description, so the naming pattern cannot be written literally here."
+      }
+    }
+  }
+}
