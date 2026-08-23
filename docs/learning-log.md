@@ -243,6 +243,61 @@ cannot say it literally.
 Generalises a little: in any format where a value can be a reference, the
 escaping rules apply to every string, not only the ones you think of as values.
 
+---
+
+## 2026-08-23 — A heuristic paid out, and prose turned into data
+
+### The no-legal-path rule caught a real sequencing error
+
+`CONTRIBUTING.md` says a constraint is enforceable exactly when a legal path
+through it exists, because a guard with no legal path produces disabled guards
+rather than compliance.
+
+Planning the tier rule — components reference semantic tokens, never primitives
+— surfaced that **there was no semantic token in the repository**. Shipping the
+rule first would have left the first component author with nothing legal to
+reference, and the rule would have been switched off by the first person who hit
+it, permanently, for everyone.
+
+So the tokens conformed first (#14, ADR-0003) and the rule follows.
+
+Worth recording plainly: **this is the first time one of these heuristics has
+actually fired.** A heuristic that never changes a decision is decoration, and
+the honest test of the set is how often one of them stops something. This one
+stopped a sequencing error before it cost anything.
+
+### Prose in a data file is still in the data file
+
+Adding that first semantic token, the build failed with a reference error that
+pointed at a sentence of English:
+
+```
+{color.bg.brand} tries to reference Brand background. Property-first naming per
+ADR-0003: color.{property}.{role}. …, which is not defined.
+```
+
+The `$description` explained the naming grammar and contained the literal text
+`color.{property}.{role}`. **Style Dictionary parses `{...}` as a token
+reference in any string field — including `$description`.** The documentation was
+read as data.
+
+**This is a new class of failure for this project.** Every previous one was in
+code or in config: a wrongly paired format, an inherited third-party default, a
+missing scope. This one was in the field explicitly meant to be inert — the
+comment, the part that exists to be read by humans and ignored by machines.
+
+> **In a file a tool parses, no field is guaranteed inert. Prose in a data file
+> is still in the data file.**
+
+That generalises well beyond tokens, and this architecture is unusually exposed
+to it: documentation sits next to machine-read structure in several places — DTCG
+token descriptions, ADR front matter, the manifest, changeset files. The rule of
+thumb is that a comment cannot safely mention the syntax of the thing it is
+commenting on, unless you have checked that the field is genuinely inert.
+
+The token now says "property, then role" in words, with a note recording why it
+cannot say it literally.
+
 ### Still open after the scaffolding session
 
 ---
