@@ -18,7 +18,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "style-dictionary build --config ./config.json",
+    "build": "node ./build.js",
     "clean": "rm -rf dist"
   },
   "devDependencies": {

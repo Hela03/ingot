@@ -9,7 +9,7 @@
     "node": ">=22.14.0"
   },
   "scripts": {
-    "typecheck": "pnpm -r --if-present typecheck",
+    "typecheck": "pnpm -r --if-present typecheck && tsc -p tooling --noEmit",
     "lint": "pnpm lint:js && pnpm lint:css",
     "lint:js": "eslint .",
     "lint:css": "stylelint \"**/*.css\" --allow-empty-input",
@@ -26,8 +26,10 @@
   "devDependencies": {
     "@changesets/cli": "3.0.1",
     "@eslint/js": "^10.0.1",
+    "@types/node": "^26.2.0",
     "eslint": "10.8.1",
     "eslint-config-prettier": "10.1.8",
+    "globals": "^17.11.0",
     "prettier": "3.9.6",
     "stylelint": "17.14.1",
     "stylelint-config-standard": "40.0.0",
