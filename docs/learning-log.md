@@ -243,21 +243,129 @@ which are both about tokens, because tokens are upstream of styling and nothing
 forced the question. It showed up the moment something had to enforce a rule
 against real files.
 
+---
+
+## 2026-08-23 — A different class of failure
+
+**This is the most important entry in this log so far, and it is a different kind
+of break from everything above it.**
+
+Every previous failure was in code written in front of us: a Style Dictionary
+config paired wrongly, a TypeScript version chosen badly, a test deliberately
+broken. Someone typed the mistake and someone could see it.
+
+This one was **an inherited default in a third-party tool** — sensible for the
+general case, a hole in ours, and invisible unless specifically tested for.
+
+### What happened
+
+`stylelint-declaration-strict-value` enforces "use a variable, not a literal". It
+was configured, demonstrated catching a hex, and looked finished.
+
+It does not catch `rgb(37 99 235)`.
+
+Its `ignoreFunctions` option defaults to `true`, so **any function counts as an
+acceptable value, without its arguments being inspected**. That default is
+correct in general — `calc()`, `clamp()` and `color-mix()` are all legitimate
+ways to use tokens. But a hardcoded colour in functional notation is exactly as
+unthemeable as a hex, and the guard just built to prevent hardcoded colours did
+not see it.
+
+### The rule worth remembering
+
+> **A guard built on a third-party tool inherits that tool's defaults, and those
+> defaults were chosen for someone else's problem.**
+>
+> Test the guard against the thing you actually fear, in every form it can take —
+> not against one canonical example of it.
+
+Catching one hex proved the tool was wired up. It proved nothing about coverage.
+
+### Fixing one instance is not fixing the class
+
+The first patch banned colour-notation functions by name — a fix for the instance
+in front of us. A deliberate probe of every value form that can reach an enforced
+property found **seven holes, of which that patch closed one**:
+
+| Form                                                       | Before      | After           |
+| ---------------------------------------------------------- | ----------- | --------------- |
+| `#fff`, `#2563ebcc`                                        | caught      | caught          |
+| `rgb() rgba() hsl() hwb() lab() lch() oklab() oklch()`     | caught      | caught          |
+| `color(display-p3 …)`                                      | **slipped** | caught          |
+| `light-dark(#fff, #000)`                                   | **slipped** | caught          |
+| `var(--ig-x, #2563eb)` — literal as **fallback**           | **slipped** | caught          |
+| `var(--ig-space-4, 16px)`                                  | **slipped** | caught          |
+| `calc(16px * 2)`, `clamp()`, `min()`, `max()`              | **slipped** | caught          |
+| `z-index: calc(100 + 1)`                                   | **slipped** | caught          |
+| `color-mix(in srgb, red, blue)` — named colour as argument | **slipped** | **still slips** |
+| `canvastext`, `red` — system and named colours             | caught      | caught          |
+
+Controls that must keep working — `var(--ig-x)`, `calc(var(--ig-space-4) * 2)`,
+`color-mix(in oklch, var(--ig-x), transparent)` — all still pass. 21 of 22
+violations caught, no false positives.
+
+The var() **fallback** case should worry us most.
+`var(--ig-color-bg-brand, #2563eb)` looks like model behaviour: a hardcoded
+colour hiding behind a correct token reference. It is the same shape as the
+primitive-reference problem, where the wrong thing looks like the right thing.
+
+### The remaining hole is structural, not an oversight
+
+`color-mix(in srgb, red, blue)` cannot be caught by configuration, because
+configuration can only pattern-match strings. Catching a named colour used as a
+function argument requires parsing the value and inspecting its arguments — the
+custom rule in PR 3 of #4.
+
+`stylelint.config.js` says so in those terms: **this is a patch, not a fix.**
+Anyone reading it should know the class is not closed. The probe's cases should
+become the test corpus for that rule rather than being rewritten from memory.
+
+### On predictions: confidence marks unexamined ground
+
+A prediction was written before running the rule, and it missed twice.
+
+- The case flagged in advance at **50/50** — `margin: 0 auto` possibly failing on
+  whole-value matching — was **fine**.
+- Both actual misses — functions accepted wholesale, and case-sensitive keyword
+  matching — were in mechanisms that generated **no uncertainty at all**, because
+  they were never examined.
+
+> **Stated uncertainty marks where attention has already gone. Risk concentrates
+> in whatever produced no uncertainty. High confidence often means unexamined
+> rather than safe.**
+
+The useful question for a future prediction is not "what am I unsure about?" but
+"what did I not think about hard enough to be unsure about?"
+
 ### Still open
 
 Tracked as issues rather than here, so they have a done state:
 
 - **#4 — lint rule: no literal appearance values, no primitive references in
-  components.** Blocks the first component.
+  components.** Blocks the first component. PR 1 of 3 has landed: stylelint
+  enforces the literals rule. PRs 2 and 3 remain.
 - **#5 — version the packages independently or together.** Currently
   independent, which is the Changesets default rather than a choice.
 - **#6 — publish as `0.x` or go to `1.0.0`.**
 - **#7 — use `@changesets/changelog-github`** for PR-linked changelogs.
+- **#9 — the x-height ratio** the type scale's line-heights are tuned to.
+- **#10 — how many heading steps** the type scale runs to.
+- **#11 — the minimum hue separation**, which the collision warning and the
+  harmonisation clamp are both defined in terms of. Blocks the generator.
+- **#13 — emit a token tier manifest from the token build.** Blocks PR 2 of #4,
+  and is where lint starts depending on the token build.
+- **#14 — the sample token does not conform to ADR-0003.** Blocks the
+  end-to-end demonstration of the tier rules, not their implementation.
+- **#15 — ADR-0003 addendum: define the six missing token scales.** Border
+  width, layer order, opacity/state, motion, shadow/elevation, control size.
+  Surfaced by writing the stylelint property list: `CLAUDE.md` names ten
+  categories of theming surface and ADR-0003 defines four scales.
 
-Resolved since: ADR-0003 and ADR-0005 are written. The Tailwind placeholder
-(`#2563eb`) is superseded in principle by ADR-0005 — primitives are generated
-from a seed — but the sample token is still in the repository and still a
-placeholder until the generator exists and a brand seed is chosen.
+Resolved since: ADR-0003, ADR-0005 and ADR-0006 are written. The Tailwind
+placeholder (`#2563eb`) is superseded in principle by ADR-0005 — primitives are
+generated from a seed — but the sample token is still in the repository and
+still a placeholder until the generator exists and a brand seed is chosen, and
+it is now tracked as #14.
 
 Not yet built at all: components, Storybook, the docs site, React as a
 dependency, the palette generator, any release workflow.

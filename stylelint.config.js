@@ -122,30 +122,80 @@ export default {
       },
     ],
 
-    // COMPANION RULE — closes a hole in the one above.
+    // COMPANION RULE — patches a structural hole in the one above.
     //
-    // declaration-strict-value accepts any *function* as a valid value, by
-    // design: calc(), clamp(), min(), max() and color-mix() are all legitimate
-    // ways to use tokens. But that also lets a hardcoded colour through in
-    // functional notation — `rgb(37 99 235)` is every bit as unthemeable as
-    // `#2563eb`, and the rule above does not flag it.
+    // declaration-strict-value accepts any *function* as valid, WITHOUT
+    // inspecting its arguments. That is sensible in general — calc(), clamp(),
+    // min(), max(), color-mix() and light-dark() are all legitimate ways to use
+    // tokens. But it means every literal survives simply by being wrapped in
+    // parentheses:
     //
-    // This bans the colour-notation functions specifically, leaving calc() and
-    // color-mix() working. `color-mix(in oklch, ...)` is unaffected because the
-    // hue name there is not followed by an opening parenthesis.
+    //   color: rgb(37 99 235)            colour notation
+    //   color: light-dark(#fff, #000)    literal inside a legitimate function
+    //   color: var(--ig-x, #2563eb)      literal as a var() FALLBACK
+    //   padding: calc(16px * 2)          literal length inside maths
+    //
+    // The patterns below catch the literal wherever it sits in the value.
+    //
+    // THIS IS A PATCH, NOT A FIX. Configuration can only pattern-match strings.
+    // A literal that is a *named* colour inside a function —
+    // `color-mix(in srgb, red, blue)` — is still invisible here, because
+    // catching it needs argument-level inspection. That is the custom rule in
+    // PR 3 of #4. Do not assume this rule closes the class.
     'declaration-property-value-disallowed-list': [
       {
-        '/color$/': ['/\\b(rgba?|hsla?|hwb|lab|lch|oklab|oklch)\\(/'],
-        background: ['/\\b(rgba?|hsla?|hwb|lab|lch|oklab|oklch)\\(/'],
-        fill: ['/\\b(rgba?|hsla?|hwb|lab|lch|oklab|oklch)\\(/'],
-        stroke: ['/\\b(rgba?|hsla?|hwb|lab|lch|oklab|oklch)\\(/'],
-        '/^border(-(top|right|bottom|left))?$/': [
-          '/\\b(rgba?|hsla?|hwb|lab|lch|oklab|oklch)\\(/',
+        // --- Colour properties -------------------------------------------
+        // Colour-notation functions, any case; the CSS Color 4 `color()`
+        // function (\bcolor\( does not match `color-mix(`); and a hex literal
+        // anywhere in the value, which is what catches fallbacks and
+        // light-dark().
+        '/color$/': [
+          '/\\b(rgba?|hsla?|hwb|lab|lch|oklab|oklch)\\(/i',
+          '/\\bcolor\\(/i',
+          '/#[0-9a-fA-F]{3,8}\\b/',
         ],
+        background: [
+          '/\\b(rgba?|hsla?|hwb|lab|lch|oklab|oklch)\\(/i',
+          '/\\bcolor\\(/i',
+          '/#[0-9a-fA-F]{3,8}\\b/',
+        ],
+        fill: [
+          '/\\b(rgba?|hsla?|hwb|lab|lch|oklab|oklch)\\(/i',
+          '/#[0-9a-fA-F]{3,8}\\b/',
+        ],
+        stroke: [
+          '/\\b(rgba?|hsla?|hwb|lab|lch|oklab|oklch)\\(/i',
+          '/#[0-9a-fA-F]{3,8}\\b/',
+        ],
+        '/^border(-(top|right|bottom|left))?$/': [
+          '/\\b(rgba?|hsla?|hwb|lab|lch|oklab|oklch)\\(/i',
+          '/#[0-9a-fA-F]{3,8}\\b/',
+        ],
+
+        // --- Space and radius --------------------------------------------
+        // A length with a unit, anywhere in the value. Catches calc(16px * 2),
+        // clamp(1rem, ...), min(16px, ...) and var(--x, 16px).
+        //
+        // `%` is deliberately excluded so calc(100% - var(--ig-space-4))
+        // remains legal — a percentage is structural, not a scale step.
+        //
+        // border-width is deliberately NOT here: `1px` is temporarily allowed
+        // above, and this pattern would contradict that.
+        '/^padding/': ['/\\d+(px|rem|em|ch|vw|vh|pt|cm|mm|in)\\b/i'],
+        '/^margin/': ['/\\d+(px|rem|em|ch|vw|vh|pt|cm|mm|in)\\b/i'],
+        '/gap$/': ['/\\d+(px|rem|em|ch|vw|vh|pt|cm|mm|in)\\b/i'],
+        '/radius$/': ['/\\d+(px|rem|em|ch|vw|vh|pt|cm|mm|in)\\b/i'],
+
+        // --- Layer order ---------------------------------------------------
+        // Any digit. Catches calc(100 + 1). Safe because layer tokens are
+        // NAMED, not numbered — `--ig-layer-modal`, never `--ig-layer-1`.
+        // If a numbered layer token is ever introduced, this breaks, which is
+        // the correct outcome: it would contradict the named-layer decision.
+        'z-index': ['/\\d/'],
       },
       {
         message:
-          'Colour written in functional notation is still hardcoded. Use a token: var(--ig-color-...).',
+          'Hardcoded appearance value. A literal inside a function is still hardcoded — use a token: var(--ig-...).',
       },
     ],
 
