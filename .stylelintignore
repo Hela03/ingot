@@ -1,0 +1,12 @@
+# Generated token output. It is *supposed* to contain literal values — that is
+# what a token definition is. Linting it would flag the source of truth.
+packages/tokens/dist/
+
+# Other generated output
+dist/
+build/
+storybook-static/
+.astro/
+coverage/
+
+node_modules/
