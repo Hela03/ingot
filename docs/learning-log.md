@@ -219,6 +219,30 @@ reasoning that a document has no done state and an issue closes. #4 — the lint
 rule forbidding literal appearance values and direct primitive references —
 must land before the first component.
 
+---
+
+## 2026-08-23 — Prose in token metadata is parsed as data
+
+Adding the first semantic token, the build failed with:
+
+```
+{color.bg.brand} tries to reference Brand background. Property-first naming per
+ADR-0003: color.{property}.{role}. …, which is not defined.
+```
+
+The `$description` explained the naming grammar and contained the literal text
+`color.{property}.{role}`. **Style Dictionary parses `{...}` as a token
+reference in any string field, including descriptions.** The documentation was
+being read as data.
+
+Small, quickly fixed, and worth recording because the failure mode is not
+obvious: a comment cannot mention the syntax of the thing it is commenting on.
+The token now says "property, then role" in prose, with a note explaining why it
+cannot say it literally.
+
+Generalises a little: in any format where a value can be a reference, the
+escaping rules apply to every string, not only the ones you think of as values.
+
 ### Still open after the scaffolding session
 
 ---

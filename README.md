@@ -51,7 +51,7 @@ The first four are exactly what CI runs on every pull request.
 ## Theming
 
 Tokens compile to CSS custom properties prefixed `--ig-`, for example
-`--ig-color-blue-500`. Consumers retheme Ingot by overriding those properties,
+`--ig-color-bg-brand`. Consumers retheme Ingot by overriding those properties,
 not by forking the components.
 
 The prefix is `--ig-` rather than `--in-` because `in` is a CSS length unit.
