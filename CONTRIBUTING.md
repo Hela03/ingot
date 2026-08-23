@@ -179,6 +179,50 @@ discovering after the fifth modal. That is a considered trade, not an oversight,
 and it is only safe because the answer is obvious. Do not generalise it to
 open-ended properties like `width`.
 
+## Write guards against the well-formed violation
+
+When you write a rule, ask: **what does the well-formed version of this
+violation look like?**
+
+That is the one that reaches production. An ugly violation — a raw `#2563eb`
+dropped into a component — gets caught by anyone reading the diff, and often by
+the author before they commit. The dangerous case is the one that reads as
+someone doing the right thing: correct-looking, plausible, and wrong.
+
+Three have turned up so far, and all three read as good practice:
+
+- **A primitive reference.** `var(--ig-color-brand-9)` looks like proper token
+  usage. It passes review, typechecks, and renders correctly — and is silently
+  unthemeable, because a consumer's theme operates on the semantic layer.
+- **A composed text style, set atomically.** Setting `font-size` from a token
+  looks correct, but ADR-0003 makes typography composite: size, line-height,
+  weight and tracking travel together, and setting one alone permits exactly the
+  combinations the composite token exists to prevent.
+- **A `var()` fallback.** `var(--ig-color-bg-brand, #2563eb)` looks defensive
+  and careful. It is a hardcoded colour, and it is worse than a bare one — see
+  below.
+
+A rule that only catches the ugly form gives false confidence: it reports
+success on the cases that were never going to ship, and stays quiet on the ones
+that will.
+
+### The `var()` fallback defeats two guards at once
+
+Worth stating separately, because it is the sharpest example.
+
+```css
+color: var(--ig-color-bg-brand, #2563eb);
+```
+
+1. **It hides a literal**, which the no-hardcoded-values rule exists to catch.
+2. **The fallback fires precisely when the token is missing** — which is the
+   exact condition the token-existence check exists to detect. The fallback
+   makes the page look fine, so the missing token produces no visual symptom and
+   no error. The guard is not merely bypassed; it is actively masked.
+
+A rule handling this incidentally is not enough. It has to be handled
+deliberately, and tested for.
+
 ## Error messages are tested for content
 
 Any error message a person meets when they are **blocked** must be tested for
