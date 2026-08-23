@@ -124,8 +124,18 @@ consumer flexibility is exactly equal to token coverage. See
 [ADR-0003](docs/decisions/0003-token-architecture.md).
 
 `stylelint.config.js` enforces this, and the properties it covers are listed
-there with the reasoning. A colour in functional notation — `rgb(37 99 235)` —
-is exactly as hardcoded as a hex, and is caught too.
+there with the reasoning. A literal is caught wherever it sits in the value —
+functional notation (`rgb(37 99 235)`), inside a legitimate function
+(`light-dark(#fff, #000)`), and as a `var()` **fallback**
+(`var(--ig-color-bg-brand, #2563eb)`), which is the one that most looks like
+correct code.
+
+**Do not assume the rule is complete.** Configuration can only pattern-match
+strings, so a named colour used as a function argument —
+`color-mix(in srgb, red, blue)` — is still invisible to it. Closing that needs
+argument-level parsing, which is the custom rule in #4. If you are relying on
+lint to catch a hardcoded value, check that the form you have in mind is
+actually covered.
 
 Tokens are authored in [W3C DTCG](https://tr.designtokens.org/) JSON under
 `packages/tokens/src/` and compiled by Style Dictionary. Never edit anything in
