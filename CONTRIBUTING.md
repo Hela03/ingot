@@ -280,6 +280,47 @@ something the rules discover case by case.
 Ask this of any new check: what does it look like when it is wrong in the
 direction nobody complains about?
 
+## Error legibility is a separate axis from failure detection
+
+Whether a failure is **detected** and whether the resulting error **names the
+right cause** are different questions. Do not merge them with the previous
+heuristic — that one is about which failure direction is silent; this one
+applies when nothing is silent at all.
+
+The worked example is the empty token manifest. Both available options failed
+loudly. The question was only what the person reads:
+
+- **Treat empty as valid.** Every `var(--ig-*)` reference then reports as
+  non-existent. One broken build is misdiagnosed as a thousand broken
+  references, and the person goes looking at their CSS instead of their build.
+- **Treat empty as an error.** Someone with genuinely no tokens reads a message
+  saying their manifest has no tokens — which is true, and names where to look.
+
+**The test: when this fires and the diagnosis is wrong, how long does the wrong
+path cost?** Seconds of confusion beats an afternoon in the wrong file. Choose
+the option whose failure mode is cheap to recover from, not the one that is
+technically more permissive.
+
+## Tooling gets the same standards it enforces
+
+The lint rules, the token build and everything else under `tooling/` are held to
+the standards they exist to impose. `tooling/tsconfig.json` typechecks them with
+`checkJs`, even though they are plain JavaScript, and they are tested like
+anything else.
+
+This is not symmetry for its own sake. Within a minute of being switched on,
+`checkJs` found three real gaps in the manifest loader — `@types/node` was never
+installed, several functions were implicitly `any`, and `cause` in a `catch`
+block is `unknown`, so `cause.message` would have printed `undefined` **into the
+malformed-manifest error message**. A broken error message about a broken file.
+
+That last one is worth dwelling on, because it is the one bug with nothing
+underneath it. Everything else in this project degrades into an error message:
+a bad token reference, a stale manifest, a failing test. **When the error
+message itself degrades, there is no fallback layer** — the person is left with
+`undefined` and no way to work out what happened. Diagnostics are load-bearing,
+and they are the last thing standing.
+
 ## Error messages are tested for content
 
 Any error message a person meets when they are **blocked** must be tested for
