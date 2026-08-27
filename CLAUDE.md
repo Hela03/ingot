@@ -49,8 +49,9 @@ component**. Components consume semantic tokens, and component tokens once those
 exist. **A component referencing a primitive directly is a defect** — it is
 immune to theming. Primitives are generated from a seed config, never
 hand-authored. See `docs/decisions/0003-token-architecture.md` for the naming
-grammar and scales, and `0005-palette-generation-and-accessibility.md` for
-generation and the accessibility policy.
+grammar and scales, and `0007-palette-generation-and-accessibility.md` for
+generation and the accessibility policy. (ADR-0005 is superseded by 0007 — do
+not read it as current.)
 
 Components are styled with **CSS Modules**, with every appearance value a CSS
 custom property (ADR-0006). This is what makes theming work in the browser
@@ -88,7 +89,10 @@ branch, then open a pull request with `gh`.
 ## Storybook vs docs
 
 - **Storybook** (`apps/storybook`) — component states, variants, accessibility,
-  visual regression.
+  visual regression. Every story renders under **both a two-colour and a
+  one-colour theme**: primary and secondary may be the same colour, so a
+  distinction that depends on colour must be visible as identical rather than
+  failing silently. See ADR-0007.
 - **Docs** (`apps/docs`) — concepts, tokens, guidelines, ADRs, theming, getting
   started.
 
