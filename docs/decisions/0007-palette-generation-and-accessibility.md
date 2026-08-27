@@ -83,6 +83,42 @@ API, and no consumer-facing documentation should require understanding them.
 One hex produces a complete, accessible system. Every seed given is control the
 consumer has taken.
 
+#### Status hue defaults are chosen for recognition, not for fit
+
+| Status    | Hue      | Reference         |
+| --------- | -------- | ----------------- |
+| `danger`  | **25°**  | Radix red-9       |
+| `warning` | **84°**  | Radix amber-9     |
+| `success` | **147°** | Radix **grass**-9 |
+| `info`    | **252°** | Radix blue-9      |
+
+**Status colours are the one part of the palette whose job is recognition rather
+than fit.** Every other token expresses a brand. `danger`, `success` and
+`warning` must be read correctly by someone who has never seen the product,
+quickly, and possibly under stress. **Optimising them for harmony with the brand
+optimises the wrong variable.**
+
+Success at 147° rather than 158° is the worked example. The cooler 158° pairs
+more comfortably with a wider range of brands — it clashes less against warm
+brands and reads as more contemporary. Every one of those advantages is about
+**pairing with the brand**, and ADR-0007 already has a mechanism for that:
+harmonisation (below), which is opt-in and per-theme.
+
+> **A default chosen for recognisability, plus optional harmonisation, strictly
+> beats a default pre-compromised toward blending in.** The pre-compromised
+> default is worse on both axes at once: less recognisable than the conventional
+> hue, and less well fitted than a hue actually tuned to the brand in front of
+> it.
+
+147° is also further from cyan, which matters because teal is a common brand
+colour and a success state drifting toward teal loses its conventional reading.
+
+**This reasoning applies equally to `danger` 25°, `warning` 84° and `info` 252°.**
+None of the four should be relitigated on the grounds that a different value
+would sit more comfortably with some brand. That is what harmonisation is for. A
+future change to any of them needs an argument about **recognition** — that the
+current hue is misread, or is read as the wrong status — not about aesthetics.
+
 #### Secondary duplicates primary. It is never derived.
 
 When no secondary seed is supplied, **secondary resolves to primary**. It is not
