@@ -375,6 +375,31 @@ lint, not in the contrast matrix, not at runtime.
 This belongs in the component ADR as well as here, and it is a documentation
 rule as much as a code one.
 
+#### Mitigation: a permanent one-colour theme in Storybook
+
+No lint rule catches this. It is a rule about what documentation _says_ and what
+a component's design _depends on_, and neither is mechanically checkable in any
+way we have found.
+
+So the mitigation is not a guard, it is **exposure**:
+
+> **Every component's stories render under both a two-colour theme and a
+> one-colour theme.**
+
+A primary/secondary distinction that depends on colour becomes **visibly
+identical** in the one-colour theme, the moment anyone looks at the story. That
+converts an invisible failure — a flat interface, no error anywhere — into an
+obvious one.
+
+This is deliberately built into the Storybook setup **from the start**, not added
+after the first violation. Storybook needs theme switching regardless, so the
+marginal cost is a second theme in the list; the cost of adding it later is
+whatever has already been built on the assumption that colour distinguishes the
+two.
+
+It is not a guarantee. Someone must look. But it makes the failure available to
+be seen, which prose does not.
+
 ## Alternatives considered
 
 - **Amending ADR-0005 in place.** Rejected: seed position changes so much

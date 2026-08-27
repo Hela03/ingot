@@ -78,6 +78,20 @@ The rationale differs by scale, and the distinction is deliberate:
 | 9–10  | solid fills           |
 | 11–12 | text                  |
 
+> **Addendum, 2026-08-27.** This table now describes the **common case**; it does
+> not guarantee anything.
+>
+> [ADR-0007](0007-palette-generation-and-accessibility.md) derives the brand
+> seed's position from its lightness rather than fixing it at step 9, and
+> computes semantic mappings per theme against wherever it lands. One theme's
+> `color.bg.primary` may resolve to step 9 and another's to step 11. The bands
+> above hold reliably only when the seed sits near step 9.
+>
+> **The contrast assertions are the guarantee.** Where the two appear to
+> conflict, the assertions are what hold. Do not treat this table as a promise
+> about which step fills which role, and do not write documentation or code that
+> depends on it.
+
 **Space — 8 steps.** Base unit `0.25rem`. Progression 4 / 8 / 12 / 16 / 24 / 32
 / 48 / 64 in px equivalent.
 

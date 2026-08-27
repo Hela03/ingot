@@ -4,7 +4,7 @@
       "9": {
         "$type": "color",
         "$value": "#2563eb",
-        "$description": "PLACEHOLDER. Step 9 of the brand scale — solid fills, per the Radix band model in ADR-0003. The value is Tailwind's default blue-500 and is a stand-in only: ADR-0005 makes primitives GENERATED from a brand seed, not hand-authored. Replace when the generator and a chosen seed exist."
+        "$description": "PLACEHOLDER. A brand primitive. It sits at step 9 only because it is a hand-written stand-in — ADR-0007 derives the seed's position from its lightness rather than fixing it, so a real theme may place the brand colour anywhere on the scale. The value is Tailwind's default blue-500. Primitives are GENERATED from a brand seed, never hand-authored: replace when the generator exists and a seed is chosen."
       }
     }
   }
