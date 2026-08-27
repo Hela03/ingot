@@ -424,6 +424,68 @@ expect the next one: **not in the tooling, which meets reality on every run, but
 in the decisions that have not yet met anything.** ADR-0003's scales and
 ADR-0007's own generation model are both still in that category.
 
+---
+
+## 2026-08-27 — Measuring the wrong quantity, and a decision that dissolved
+
+Proposed a minimum hue separation for collision detection (#11), calibrated by
+computing hue angles for six candidate brand seeds against four status hues, and
+tabulating which pairs would warn at thresholds from 20° to 40°.
+
+The analysis was careful, produced a clean table, and **measured the wrong
+quantity**.
+
+### Two independent ways seed hue is the wrong variable
+
+- **Hue is meaningless at low chroma.** One candidate brand, "coal", is
+  achromatic. Its hue angle is numerical noise, and it computed as 6° from the
+  warning hue — a confident warning about a collision that cannot exist. **No hue
+  proximity makes grey look amber.**
+- **Seed chroma does not survive into the fill.** "Matcha" sat 1° from the success
+  hue and warned; "neo lime" sat 28° away. But a pale green seed generates a scale
+  whose _solid fill_ is saturated green, so the distance between what actually
+  renders is not the distance between the seeds. The seeds' own chroma is
+  irrelevant to the output.
+
+### The tell was there and was misread
+
+The coal case was noticed — and answered with a **chroma floor**: skip the check
+below some chroma, because hue is noise down there. That is a patch on a broken
+measurement, presented as a companion decision, complete with a suggested value
+and a note that it deserved its own empirical treatment.
+
+**A second threshold introduced to compensate for the first one measuring the
+wrong thing is a signal, not a subtask.** The correct response was to notice that
+the metric was wrong, not to fence off the region where its wrongness was
+visible.
+
+### The fix, and what it dissolved
+
+Compare the **resolved solid fills** — the actual step the derivation assigns to
+`color.bg.{role}` — using perceptual distance in OKLab. What renders is what can
+collide.
+
+Coal then falls out on its own: a grey fill sits far from any saturated status
+fill in the a/b plane, no special case required. Pale and dark seeds are handled
+because the derivation has already placed them.
+
+**The chroma floor stopped being a decision. It became a question that no longer
+exists.**
+
+> **A proposed threshold that exists to hide the failure of another measurement
+> is evidence the measurement is wrong.**
+
+Worth adding to the set: this is the second time a _proposal_ was the symptom
+rather than the fix. The first was patching one colour-notation function instead
+of the class of literal-inside-a-function.
+
+### And the units changed underneath
+
+The provisional number from the seed analysis was an **angle**. The threshold is
+now a **distance**. Nothing carries over — not the value, not its calibration.
+Recorded in ADR-0007 explicitly, because "30" would otherwise look like a
+starting point when it is a number from a different measurement entirely.
+
 ### Still open after the scaffolding session
 
 ---

@@ -230,14 +230,61 @@ it.
 hover direction.** Reversing hover would trade a legibility guarantee for an
 affordance one; adding a border satisfies both.
 
-#### Hue collision detection
+#### Collision detection: compare resolved fills, not seeds
 
-Checked across the **full brand × status matrix**, not only against `info`. A red
-brand collides with `danger`, green with `success`, amber with `warning`, blue
-with `info`.
+Checked across the **full brand × status matrix**, not only against `info`.
 
-**Warn at build time. Never error** — a collision is sometimes acceptable, and
-the consumer owns that decision.
+**The comparison is between resolved solid-fill colours**, not between seed
+hues. For each role, take the step the derivation in section 3 assigns to
+`color.bg.{role}`, and measure **perceptual distance in OKLab** between those
+colours.
+
+##### Why not seed hue
+
+A seed's hue angle measures the wrong thing, in two independent ways:
+
+- **Hue is meaningless at low chroma.** A near-achromatic brand — a grey "coal" —
+  has a hue angle that is numerical noise. It may compute as a few degrees from
+  the warning hue, and a seed-hue check will warn confidently. **No hue proximity
+  makes grey look amber.**
+- **Seed chroma does not survive into the fill.** A pale green seed generates a
+  scale whose solid fill is saturated green. Two seeds one degree apart in hue
+  can produce fills further apart perceptually than two seeds twenty-eight
+  degrees apart, because the seeds' own chroma is irrelevant to what the scale
+  produces.
+
+**What renders is what can collide, and the fills are what render.** The seed is
+an input to generation, not the thing anyone sees.
+
+##### What this dissolves
+
+Comparing seeds would have required a **chroma floor** — a second threshold,
+below which hue comparison is skipped because it is noise. Comparing resolved
+fills removes the need for one:
+
+- An achromatic brand generates a grey fill, which sits far from any saturated
+  status fill in the a/b plane. It falls out naturally, with a large distance and
+  no warning.
+- Pale and dark seeds are handled automatically, because the derivation has
+  already placed them by the time the comparison happens.
+
+**This is a question dissolved rather than a decision deferred.** There is no
+chroma floor to set.
+
+##### Consequences
+
+- The check runs **after generation**, against output, not against the config.
+- **The threshold is a perceptual distance, not an angle.** A number arrived at
+  by comparing seed hue angles does not transfer to this metric — different
+  quantity, different units.
+- Calibration is by **looking**, not by reading a number. The theme report renders
+  the matrix as **swatch pairs** (section 12), because the question "do these two
+  look confusable" is not one a distance answers on its own.
+
+##### Policy
+
+**Warn at build time. Never error** — a collision is sometimes acceptable, and the
+consumer owns that decision.
 
 The warning must name the remedy, not merely the similarity: differentiate on
 chroma and lightness within the scale, and ensure status components carry
@@ -443,10 +490,20 @@ implementation part of the public contract.
 
 ## Unspecified, to be set before implementation
 
-- **The minimum hue separation** — the collision threshold, which also clamps
-  harmonisation. Tracked as
-  [#11](https://github.com/Hela03/ingot/issues/11). The 30° figure used
-  illustratively in section 11 is not a decision.
+- **The minimum perceptual separation between resolved fills** — the collision
+  threshold, which also clamps harmonisation. Tracked as
+  [#11](https://github.com/Hela03/ingot/issues/11).
+
+  It cannot be calibrated before the generator exists, because it is measured
+  against generated output rather than against the seed config. The generator is
+  built with a **provisional** value, clearly marked as such and not shipped as
+  decided, and the number is chosen by reviewing the swatch pairs in the theme
+  report.
+
+  Note that the 30° figure used illustratively in section 11 is an **angle**, and
+  this threshold is a **distance**. The illustration predates this section and its
+  unit does not carry over.
+
 - **Ingot's own brand seed.** Ingot's default theme is generated from a seed like
   any other, with per-step hand adjustment permitted — our own theme should
   demonstrate that the escape hatch works. The seed itself is the maintainer's to
