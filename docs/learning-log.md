@@ -369,6 +369,61 @@ So the prediction checklist now has three questions, not two:
 
 The third is the cheapest of the three, and it was the one skipped.
 
+---
+
+## 2026-08-27 — The supersede convention gets used for the first time
+
+`docs/decisions/README.md` has said since the first week that an ADR is never
+deleted — a decision that no longer holds is marked `Superseded by ADR-NNNN`,
+because the fact that it was once decided is part of the record.
+
+Today it was used. [ADR-0005](decisions/0005-palette-generation-and-accessibility.md)
+(palette generation) is superseded by
+[ADR-0007](decisions/0007-palette-generation-and-accessibility.md).
+
+### What broke, and what did not
+
+ADR-0005 assumed the brand seed becomes **step 9** of the generated scale.
+Applied to real brands, that fails in both directions: a dark brand forced to
+step 9 is lightened away from the hex the consumer supplied, and a pale brand at
+step 9 cannot carry the text it is supposed to carry. Brands arrive with an exact
+colour and expect it on the button.
+
+Almost everything else in 0005 held — OKLCH, chroma damping, snap-to-seed,
+computed text-on-solid, collision detection, the accessibility policy. **One
+assumption failed, and it was load-bearing**: fixing it makes the semantic layer
+generated output rather than an authored file, and demotes the step-to-role table
+from a guarantee to a heuristic.
+
+### Amend or supersede?
+
+The rule that emerged, worth reusing:
+
+> **Supersede when the delta would be harder to read than the whole.**
+
+An amendment describing "step 9 is now derived, and consequently the semantic
+layer is generated, and consequently the band model is only a heuristic" leaves a
+reader assembling the current policy from an original plus corrections. Nobody
+does that accurately. ADR-0007 therefore restates the entire policy and is
+explicitly **not** written as a delta; 0005 carries a header saying what changed
+and what survived, so the history is legible without being load-bearing.
+
+### The uncomfortable observation
+
+This project's central bet is building the safety net before the thing it
+catches. The enforcement layer went in well ahead of any component, deliberately.
+
+**The first decision to break is one that was made in the abstract.** ADR-0005
+was written without a single real brand colour having been run through anything.
+The guards — lint rules, manifest loader, contrast policy — have not needed
+replacing; the _design_ decision made furthest from contact with reality did.
+
+That is not an argument against deciding early. ADR-0005 was correct to exist,
+and writing it is what made the flaw findable. But it does sharpen where to
+expect the next one: **not in the tooling, which meets reality on every run, but
+in the decisions that have not yet met anything.** ADR-0003's scales and
+ADR-0007's own generation model are both still in that category.
+
 ### Still open after the scaffolding session
 
 ---

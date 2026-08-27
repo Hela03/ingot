@@ -1,8 +1,32 @@
 # 0005. Palette generation and accessibility policy
 
-- **Status:** Accepted
+- **Status:** **Superseded by [ADR-0007](0007-palette-generation-and-accessibility.md)**
 - **Date:** 2026-08-22
 - **Deciders:** Laura España
+
+> **This decision no longer holds. Read
+> [ADR-0007](0007-palette-generation-and-accessibility.md) instead.**
+>
+> It is kept because the fact that it was once decided is part of the record, and
+> because its reasoning explains why the replacement looks as it does. Nothing
+> below should be treated as current.
+>
+> **What changed.** This ADR assumed the brand seed becomes step 9 of the
+> generated scale. Applied to real brands that breaks in both directions: a dark
+> brand forced to step 9 is lightened away from the colour the consumer supplied,
+> and a pale brand at step 9 cannot carry the text it is meant to carry. ADR-0007
+> derives the seed's position from its lightness instead — which in turn makes
+> the semantic layer generated output rather than an authored file, and demotes
+> the step-to-role table from a guarantee to a heuristic.
+>
+> **What survived unchanged**, and is restated in ADR-0007 rather than referenced
+> from here: generated primitives in OKLCH, chroma damping at the extremes,
+> snap-to-seed, computed `text-on-solid` per scale, alpha and wide-gamut
+> variants, hue collision detection across the full brand × status matrix,
+> harmonisation clamped by the collision threshold, accessible-by-default with
+> explicit per-pair overrides requiring a reason, WCAG 2.1 AA as the CI gate with
+> APCA reported alongside, and a single config shared by build, tests and
+> documentation.
 
 ## Context
 
