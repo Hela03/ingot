@@ -5,7 +5,7 @@
 // achromatic brand produces a grey fill, which is far from every saturated
 // status fill in the a/b plane regardless of what hue angle the grey reports.
 
-import { hueDistance, perceptualDistance } from './oklch.js';
+import { abDistance, hueDistance, perceptualDistance } from './oklch.js';
 import { generateScale, resolvedFill } from './scale.js';
 
 /**
@@ -23,6 +23,12 @@ import { generateScale, resolvedFill } from './scale.js';
  * not transfer.
  */
 export const PROVISIONAL_THRESHOLD = 0.15;
+
+/**
+ * PROVISIONAL — NOT A DECISION. As above, and in the a/b plane rather than the
+ * full OKLab space, so it is a different quantity again. Also arbitrary.
+ */
+export const PROVISIONAL_AB_THRESHOLD = 0.1;
 
 /**
  * @param {Record<string, string>} brandSeeds role -> hex
@@ -54,13 +60,18 @@ export function collisionMatrix(
         brandStep: brandScale.resolvedStep,
         statusStep: statusScale.resolvedStep,
         distance,
+        // Chroma and hue only. See oklch.js: including lightness may
+        // double-count what the step system already separates.
+        abDist: abDistance(brandFill.colour, statusFill.colour),
         // Reported for information only. It is NOT what the check uses, and for
         // an achromatic fill it is meaningless — which is the point.
         seedHueDistance: hueDistance(brandScale.seed, statusScale.seed),
         collides: distance < threshold,
+        abCollides:
+          abDistance(brandFill.colour, statusFill.colour) < PROVISIONAL_AB_THRESHOLD,
       });
     }
   }
 
-  return { threshold, pairs };
+  return { threshold, abThreshold: PROVISIONAL_AB_THRESHOLD, pairs };
 }

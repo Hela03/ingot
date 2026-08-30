@@ -16,7 +16,7 @@ import { generateScale } from './scale.js';
 const escape = (s) =>
   String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-/** @param {{ name: string, hex: string, note?: string }} entry */
+/** @param {{ name: string, hex: string, role?: string, note?: string }} entry */
 function scaleRow(entry) {
   const scale = generateScale(entry.hex);
   const swatches = scale.steps
@@ -34,48 +34,81 @@ function scaleRow(entry) {
     <h3>${escape(entry.name)}
       <span class="meta">seed ${scale.seedHex} &middot; L ${scale.seed.L.toFixed(2)} &middot; C ${scale.seed.C.toFixed(3)} &middot; H ${scale.seed.H.toFixed(0)}&deg; &middot; <strong>resolved to step ${scale.resolvedStep}</strong></span>
     </h3>
-    ${entry.note ? `<p class="note">${escape(entry.note)}</p>` : ''}
+    ${entry.note ? `<p class="note">${entry.role === 'background' ? '<strong>Supplied as a BACKGROUND candidate.</strong> ' : ''}${escape(entry.note)}</p>` : ''}
     <div class="steps">${swatches}</div>
   </section>`;
 }
 
+/**
+ * One grid of touching swatch pairs, ranked by a chosen metric.
+ *
+ * @param {ReturnType<import('./collision.js').collisionMatrix>['pairs']} pairs
+ * @param {'full' | 'ab'} metric
+ */
+function pairGrid(pairs, metric) {
+  const sorted = [...pairs].sort((a, b) =>
+    metric === 'ab' ? a.abDist - b.abDist : a.distance - b.distance,
+  );
+
+  return `<div class="pairs">${sorted
+    .map((p) => {
+      const flagged = metric === 'ab' ? p.abCollides : p.collides;
+      const primary = metric === 'ab' ? p.abDist : p.distance;
+      const secondary = metric === 'ab' ? p.distance : p.abDist;
+      const secondaryLabel = metric === 'ab' ? 'full' : 'a/b';
+
+      return `<figure class="pair${flagged ? ' pair--flagged' : ''}">
+        <div class="duo">
+          <div class="half" style="background:${p.brandFill.hex}"></div>
+          <div class="half" style="background:${p.statusFill.hex}"></div>
+        </div>
+        <figcaption>
+          <span class="who">${escape(p.brandRole)} <span class="vs">/</span> ${escape(p.statusRole)}</span>
+          <span class="d">${primary.toFixed(3)}${flagged ? ' &middot; flagged' : ''}</span>
+          <span class="d">${secondaryLabel} ${secondary.toFixed(3)} &middot; step ${p.brandStep}/${p.statusStep}</span>
+        </figcaption>
+      </figure>`;
+    })
+    .join('')}</div>`;
+}
+
 /** @param {ReturnType<import('./collision.js').collisionMatrix>} matrix */
 function collisionSection(matrix) {
-  const sorted = [...matrix.pairs].sort((a, b) => a.distance - b.distance);
-
-  const cards = sorted
-    .map(
-      (p) => `<figure class="pair${p.collides ? ' pair--flagged' : ''}">
-      <div class="duo">
-        <div class="half" style="background:${p.brandFill.hex}"></div>
-        <div class="half" style="background:${p.statusFill.hex}"></div>
-      </div>
-      <figcaption>
-        <span class="who">${escape(p.brandRole)} <span class="vs">/</span> ${escape(p.statusRole)}</span>
-        <span class="d">${p.distance.toFixed(3)}${p.collides ? ' &middot; flagged' : ''}</span>
-        <span class="d">step ${p.brandStep} / ${p.statusStep} &middot; seed hue &Delta; ${p.seedHueDistance.toFixed(0)}&deg;</span>
-      </figcaption>
-    </figure>`,
-    )
-    .join('');
-
   return `<section>
     <h2>Collision pairs</h2>
     <p class="lede">Each pair is the brand's <strong>resolved solid fill</strong> beside a status
     <strong>resolved solid fill</strong>, touching, at the size they would meet at in an interface.
-    Sorted closest first. The question is whether the two read as different colours &mdash; not
-    whether the number looks small.</p>
-    <p class="warnbox"><strong>Provisional threshold ${matrix.threshold} &mdash; arbitrary.</strong>
-    Chosen so this page shows a readable spread of flagged and unflagged pairs, and for no other
-    reason. It has not been validated against anything. The real value is what you decide by looking
-    at these pairs. Note the unit: this is a perceptual distance in OKLab, not a hue angle, so no
-    number from the earlier seed-hue analysis carries over. (Issue #11.)</p>
-    <div class="pairs">${cards}</div>
+    The question is whether the two read as different colours &mdash; not whether the number looks
+    small.</p>
+
+    <p class="warnbox"><strong>Both thresholds are provisional and arbitrary.</strong> They were
+    chosen so this page shows a readable spread, and for no other reason. Neither has been validated
+    against anything. The real value is what you decide by looking. Note the units: these are
+    perceptual distances, not hue angles, so nothing from the earlier seed-hue analysis carries
+    over. (Issue #11.)</p>
+
+    <h3>Ranked by full OKLab distance &mdash; lightness, chroma and hue</h3>
+    <p class="note">Provisional threshold ${matrix.threshold}. <strong>Suspect this ranking.</strong>
+    The step system already separates colours by lightness, so including lightness here may
+    double-count it &mdash; rewarding &ldquo;these landed on different steps&rdquo; rather than
+    answering &ldquo;are these the same colour family&rdquo;.</p>
+    ${pairGrid(matrix.pairs, 'full')}
+
+    <h3 style="margin-top:34px">Ranked by a/b plane distance &mdash; chroma and hue only</h3>
+    <p class="note">Provisional threshold ${matrix.abThreshold}. Ignores lightness entirely, on the
+    grounds that the step a colour lands on is a separate matter from whether it belongs to the same
+    colour family.</p>
+    <p class="note"><strong>A structural property of this metric:</strong> an achromatic brand sits
+    at the origin of the a/b plane, so its distance to any status equals that status&rsquo;s own
+    chroma. The lowest status chroma here is success at 0.147 &mdash; so any threshold below that
+    value guarantees a grey brand never collides with anything, with no chroma floor and no special
+    case.</p>
+    ${pairGrid(matrix.pairs, 'ab')}
   </section>`;
 }
 
 /**
- * @param {{ name: string, hex: string, note?: string }[]} brands
+ * @param {{ name: string, hex: string, role?: string, note?: string }[]} brands
  * @param {Record<string,string>} statuses
  * @param {ReturnType<import('./collision.js').collisionMatrix>} matrix
  * @returns {string}

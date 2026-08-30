@@ -3,14 +3,16 @@
 // STATUS SEEDS are real reference values (Radix scale 9). Their hues are the
 // defaults ADR-0007 specifies: danger 25, warning 84, success 147, info 252.
 //
-// BRAND SEEDS ARE CONSTRUCTED. Only hue angles were supplied for these
-// candidates, so each is defined in OKLCH with the given hue exactly, and with
-// lightness and chroma chosen to span the range that matters — two very dark,
-// two pale, one bright, one achromatic. If these correspond to real brand
-// colours, substitute the actual values: ADR-0007 derives the seed's position
-// from its lightness, so lightness changes the whole scale.
-
-import { oklchToHex } from './oklch.js';
+// BRAND SEEDS are the real candidate hexes. Lightness is what determines the
+// resolved step (ADR-0007), so these must be the actual values — an earlier run
+// reconstructed them from hue angles alone and every number in it described
+// colours that do not exist.
+//
+// NOTE ON ROLE. cream and neo lime were supplied as BACKGROUND candidates, not
+// as brand seeds. They are run through brand generation here as a deliberate
+// stress test — a background colour is exactly the kind of very light seed that
+// exposes how the scale behaves far from the fill band. The correct output for
+// them may well be a warning rather than a smoothed scale.
 
 export const STATUS_SEEDS = {
   danger: '#e5484d', // Radix red-9    — hue 23
@@ -19,29 +21,32 @@ export const STATUS_SEEDS = {
   info: '#0090ff', // Radix blue-9   — hue 252
 };
 
-/** @type {{ name: string, L: number, C: number, H: number, note: string }[]} */
-const BRAND_SPECS = [
-  { name: 'indigo', L: 0.45, C: 0.18, H: 290, note: 'deep and saturated' },
-  { name: 'cream', L: 0.94, C: 0.05, H: 103, note: 'pale, low chroma' },
+/** @type {{ name: string, hex: string, role: 'brand' | 'background', note: string }[]} */
+export const BRAND_CANDIDATES = [
+  { name: 'indigo', hex: '#41386B', role: 'brand', note: 'L 0.376 · C 0.085 · H 290' },
+  {
+    name: 'cream',
+    hex: '#f7f4d5',
+    role: 'background',
+    note: 'L 0.961 · C 0.041 · H 103 — supplied as a background, run as a brand to stress the light end',
+  },
   {
     name: 'coal',
-    L: 0.3,
-    C: 0.002,
-    H: 0,
-    note: 'achromatic — hue is noise, which is what broke seed-hue comparison',
+    hex: '#222222',
+    role: 'background',
+    note: 'L 0.252 · C 0.000 — achromatic; the case that broke seed-hue comparison',
+  },
+  { name: 'matcha', hex: '#C2D8C4', role: 'brand', note: 'L 0.860 · C 0.036 · H 148' },
+  {
+    name: 'ink void',
+    hex: '#23212C',
+    role: 'background',
+    note: 'L 0.255 · C 0.021 · H 293',
   },
   {
-    name: 'matcha',
-    L: 0.85,
-    C: 0.09,
-    H: 148,
-    note: 'pale green — 1° from success as a seed',
+    name: 'neo lime',
+    hex: '#F1FEC8',
+    role: 'background',
+    note: 'L 0.974 · C 0.071 · H 119 — supplied as a background, run as a brand to stress the light end',
   },
-  { name: 'ink void', L: 0.22, C: 0.07, H: 293, note: 'very dark' },
-  { name: 'neo lime', L: 0.9, C: 0.19, H: 119, note: 'bright, high chroma' },
 ];
-
-export const BRAND_CANDIDATES = BRAND_SPECS.map((spec) => ({
-  ...spec,
-  hex: oklchToHex({ L: spec.L, C: spec.C, H: spec.H }),
-}));

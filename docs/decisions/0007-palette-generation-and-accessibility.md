@@ -49,6 +49,47 @@ approximation of one.
 
 Scales are 12 steps, per [ADR-0003](0003-token-architecture.md).
 
+### 3a. Seed chroma will not match the envelope, and both fixes break
+
+**A seed's chroma almost never matches the chroma envelope at the seed's own
+lightness.** A brand hands us a colour, not a colour that happens to sit on our
+curve. Two ways to reconcile that, and neither holds on its own:
+
+- **Scale the envelope so it passes through the seed.** Preserves continuity —
+  the scale is smooth and the seed sits naturally within it — but breaks near the
+  extremes. A seed landing at step 1 or 12 sits where the envelope is near zero,
+  so dividing by it amplifies any chroma at all into an enormous peak: an
+  achromatic seed generates a visibly tinted scale, a dark muted seed a neon one.
+- **Insert the seed as an exception.** Preserves the exact hex, which is
+  non-negotiable, but produces a discontinuity: a bright seed landing at a low
+  step is more saturated than the steps on either side of it, and the scale
+  visibly spikes.
+
+**For a seed far from the fill band, these cannot both hold.** Continuity and
+exactness are in direct conflict there, and the earlier version of this ADR did
+not say which wins.
+
+#### Resolution
+
+1. **The exact hex is preserved. Non-negotiable.** Snap-to-seed is a promise to
+   the consumer that the colour they supplied is the colour that ships. A
+   generator that quietly adjusts it has broken the thing it exists to do.
+2. **Blend the immediate neighbours toward the seed**, so the discontinuity is
+   spread across two or three steps rather than spiking at one. The scale is
+   still not perfectly smooth — it cannot be — but the seam is distributed rather
+   than concentrated.
+3. **Warn when seed chroma deviates significantly from the envelope** at its
+   resolved position. This is the honest signal: the palette is being asked to do
+   something the curve does not naturally accommodate, and the consumer should
+   know rather than discover it in a screenshot.
+
+The amplification floor mentioned above remains, since it is what stops the
+first option's failure mode; the blend addresses the second's.
+
+**Status: decided, not yet implemented.** The blend is not built. The
+calibration report shows the unblended behaviour deliberately, so the size of the
+problem is visible before it is smoothed over.
+
 ### 3. Seed position is derived, not fixed
 
 **The seed lands at whatever step its lightness places it.** It is not forced to

@@ -131,6 +131,25 @@ export function perceptualDistance(x, y) {
 }
 
 /**
+ * Distance in the a/b plane only — chroma and hue, ignoring lightness.
+ *
+ * Reported alongside the full OKLab distance because including lightness may
+ * double-count: the step system already separates colours by lightness, so a
+ * full-distance ranking can reward "these landed on different steps" rather than
+ * answering "are these the same colour family". Which ranking matches visual
+ * judgement is exactly what the calibration report is for (#11).
+ *
+ * @param {Oklch} x
+ * @param {Oklch} y
+ * @returns {number}
+ */
+export function abDistance(x, y) {
+  const p = lchToLab(x);
+  const q = lchToLab(y);
+  return Math.hypot(p.a - q.a, p.b - q.b);
+}
+
+/**
  * Circular hue difference in degrees. Reported for information only — it is NOT
  * what the collision check uses, and it is meaningless for a near-grey.
  *
