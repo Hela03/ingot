@@ -49,6 +49,47 @@ approximation of one.
 
 Scales are 12 steps, per [ADR-0003](0003-token-architecture.md).
 
+### 3a. Seed chroma will not match the envelope, and both fixes break
+
+**A seed's chroma almost never matches the chroma envelope at the seed's own
+lightness.** A brand hands us a colour, not a colour that happens to sit on our
+curve. Two ways to reconcile that, and neither holds on its own:
+
+- **Scale the envelope so it passes through the seed.** Preserves continuity —
+  the scale is smooth and the seed sits naturally within it — but breaks near the
+  extremes. A seed landing at step 1 or 12 sits where the envelope is near zero,
+  so dividing by it amplifies any chroma at all into an enormous peak: an
+  achromatic seed generates a visibly tinted scale, a dark muted seed a neon one.
+- **Insert the seed as an exception.** Preserves the exact hex, which is
+  non-negotiable, but produces a discontinuity: a bright seed landing at a low
+  step is more saturated than the steps on either side of it, and the scale
+  visibly spikes.
+
+**For a seed far from the fill band, these cannot both hold.** Continuity and
+exactness are in direct conflict there, and the earlier version of this ADR did
+not say which wins.
+
+#### Resolution
+
+1. **The exact hex is preserved. Non-negotiable.** Snap-to-seed is a promise to
+   the consumer that the colour they supplied is the colour that ships. A
+   generator that quietly adjusts it has broken the thing it exists to do.
+2. **Blend the immediate neighbours toward the seed**, so the discontinuity is
+   spread across two or three steps rather than spiking at one. The scale is
+   still not perfectly smooth — it cannot be — but the seam is distributed rather
+   than concentrated.
+3. **Warn when seed chroma deviates significantly from the envelope** at its
+   resolved position. This is the honest signal: the palette is being asked to do
+   something the curve does not naturally accommodate, and the consumer should
+   know rather than discover it in a screenshot.
+
+The amplification floor mentioned above remains, since it is what stops the
+first option's failure mode; the blend addresses the second's.
+
+**Status: decided, not yet implemented.** The blend is not built. The
+calibration report shows the unblended behaviour deliberately, so the size of the
+problem is visible before it is smoothed over.
+
 ### 3. Seed position is derived, not fixed
 
 **The seed lands at whatever step its lightness places it.** It is not forced to
@@ -82,6 +123,42 @@ API, and no consumer-facing documentation should require understanding them.
 
 One hex produces a complete, accessible system. Every seed given is control the
 consumer has taken.
+
+#### Status hue defaults are chosen for recognition, not for fit
+
+| Status    | Hue      | Reference         |
+| --------- | -------- | ----------------- |
+| `danger`  | **25°**  | Radix red-9       |
+| `warning` | **84°**  | Radix amber-9     |
+| `success` | **147°** | Radix **grass**-9 |
+| `info`    | **252°** | Radix blue-9      |
+
+**Status colours are the one part of the palette whose job is recognition rather
+than fit.** Every other token expresses a brand. `danger`, `success` and
+`warning` must be read correctly by someone who has never seen the product,
+quickly, and possibly under stress. **Optimising them for harmony with the brand
+optimises the wrong variable.**
+
+Success at 147° rather than 158° is the worked example. The cooler 158° pairs
+more comfortably with a wider range of brands — it clashes less against warm
+brands and reads as more contemporary. Every one of those advantages is about
+**pairing with the brand**, and ADR-0007 already has a mechanism for that:
+harmonisation (below), which is opt-in and per-theme.
+
+> **A default chosen for recognisability, plus optional harmonisation, strictly
+> beats a default pre-compromised toward blending in.** The pre-compromised
+> default is worse on both axes at once: less recognisable than the conventional
+> hue, and less well fitted than a hue actually tuned to the brand in front of
+> it.
+
+147° is also further from cyan, which matters because teal is a common brand
+colour and a success state drifting toward teal loses its conventional reading.
+
+**This reasoning applies equally to `danger` 25°, `warning` 84° and `info` 252°.**
+None of the four should be relitigated on the grounds that a different value
+would sit more comfortably with some brand. That is what harmonisation is for. A
+future change to any of them needs an argument about **recognition** — that the
+current hue is misread, or is read as the wrong status — not about aesthetics.
 
 #### Secondary duplicates primary. It is never derived.
 

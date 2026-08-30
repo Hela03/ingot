@@ -486,6 +486,35 @@ now a **distance**. Nothing carries over — not the value, not its calibration.
 Recorded in ADR-0007 explicitly, because "30" would otherwise look like a
 starting point when it is a number from a different measurement entirely.
 
+---
+
+## 2026-08-27 — An ADR worked as a specification
+
+The palette generator's chroma envelope was written as a symmetric gaussian
+centred on the solid-fill band. A test written from **ADR-0007's own wording** —
+"chroma is damped toward zero at the light and dark extremes" — asserted that the
+darkest step carries substantially less chroma than the peak.
+
+It failed. The gaussian left step 12 at roughly 85% of peak chroma, and only sRGB
+gamut clamping was pulling it down — clamping doing the work of design. The code
+implemented something the ADR did not say.
+
+**This is the first time an ADR has functioned as a specification rather than as
+documentation.** Every previous ADR has been read by humans deciding what to do
+next. This one was read to produce an assertion, the assertion disagreed with the
+implementation, and the implementation was wrong.
+
+That is a materially different role for these documents, and it suggests a habit
+worth keeping: **when an ADR states a property, write the test from the ADR's
+sentence rather than from the code you just wrote.** A test written from the code
+agrees with the code by construction.
+
+The limits are worth stating too. It works only for ADR statements that are
+mechanically checkable — "damped toward zero at both extremes" is; "chosen for
+recognition rather than fit" is not. Most of what an ADR records is reasoning,
+and reasoning cannot be asserted. But the parts that _can_ be are worth
+harvesting, and nobody had thought to look for them before.
+
 ### Still open after the scaffolding session
 
 ---
